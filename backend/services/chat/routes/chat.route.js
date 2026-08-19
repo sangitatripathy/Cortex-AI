@@ -7,7 +7,7 @@ router.post("/create-conversation",createConversation);
 router.get("/get-conversations",getConversations);
 router.put("/update-conversation",updateConversations);
 router.post("/save-message",saveMessage);
-router.post("/get-message/:conversationId",getMessages);
+router.get("/get-message/:conversationId",getMessages);
 
 export default router;
 

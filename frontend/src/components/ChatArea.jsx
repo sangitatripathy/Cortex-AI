@@ -9,6 +9,7 @@ import { setMessages } from '../redux/messageslice'
 const ChatArea = () => {
   const { selectedConversation } = useSelector(state=> state.conversation)
   const dispatch = useDispatch()
+  
   useEffect(()=>{
     const getMsg = async() =>{
       if(selectedConversation){

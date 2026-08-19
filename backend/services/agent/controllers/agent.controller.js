@@ -1,9 +1,12 @@
-import axios  from "axios";
+import axios from "axios";
 import { graph } from "../graph/graph.js";
+import { addMessage } from "../config/memory.js";
 
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId } = req.body;
+
+    await addMessage(conversationId,"user",prompt)
 
     await axios.post(`${process.env.CHAT_SERVICE}/save-message`, {
       conversationId,
@@ -16,10 +19,22 @@ export const agent = async (req, res) => {
       conversationId,
     });
 
-    const res = result.aiResponse;
+    const aiMessage = result.aiResponse;
 
-    return res.status(200).json(res);
+    await addMessage(conversationId,"assistant",aiMessage)
+
+    await axios.post(`${process.env.CHAT_SERVICE}/save-message`, {
+      conversationId,
+      role: "assistant",
+      content: aiMessage,
+    });
+    return res.status(200).json(aiMessage);
   } catch (error) {
-    return res.status(200).json({ message: `agent error ${error}` });
+    console.error("Agent error:", error);
+
+    return res.status(500).json({
+      message: "Agent error",
+      error: error.message,
+    });
   }
 };

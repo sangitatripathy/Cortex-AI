@@ -1,21 +1,49 @@
-import { getModel } from "../config/llmModel.js"
+import { getModel } from "../config/llmModel.js";
+import { getMemory } from "../config/memory.js";
+import {
+  SystemMessage,
+  AIMessage,
+  HumanMessage,
+} from "@langchain/core/messages";
 
 export const chatAgent = async (state) => {
-  const llm= await getModel("chat")
-  const prompt = "You are CortexAI, an Intelligent AI assistant"
-  const response = await llm.invoke([
-    {
-      "role":"system",
-      "content":prompt
-    },
-    {
-      "role":"human",
-      "content":state.prompt
+  const llm = await getModel("chat");
+
+  const history = getMemory(state.conversationId);
+
+  const prompt = `You are CortexAI, an Intelligent AI assistant
+  Rules:
+  - For simple questions, greetings, and short queries respond naturally in plain text.
+  - For technical , educational, coding or detailed topics, use clean Markdown.
+  Formatting:
+  - Use # for titles and ## for sections.
+  - Leave a blank line after headings.
+  - Use bullet point for lists.
+  - Use numbered lists for steps.
+  - Use fenced code blocks with language tags for code.
+  - Keep paragraphs short and readable.
+  - Never write heading and content on the same line.
+  - Never generate large walls of text
+  `;
+
+  const messages = [new SystemMessage(prompt)];
+
+  history.forEach((msg) => {
+    if (msg.role == "user") {
+      messages.push(new HumanMessage(msg.content));
     }
-  ])
+    if (msg.role == "assistant") {
+      messages.push(new AIMessage(msg.content));
+    }
+  });
+
+  messages.push(new HumanMessage(state.prompt));
+  console.log(messages);
+
+  const response = await llm.invoke(messages);
 
   return {
     ...state,
-    aiResponse: response.content
-  }
-}
+    aiResponse: response.content,
+  };
+};
