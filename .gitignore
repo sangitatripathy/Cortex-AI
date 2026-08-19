@@ -1,2 +1,9 @@
+# Environment variables
 .env
+.env.*
+!.env.example
 node_modules
+
+# Google/Firebase service account credentials
+serviceAccountKey.json
+**/serviceAccountKey.json
