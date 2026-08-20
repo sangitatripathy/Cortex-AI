@@ -9,7 +9,7 @@ import {
 export const chatAgent = async (state) => {
   const llm = await getModel("chat");
 
-  const history = getMemory(state.conversationId);
+  const history = await getMemory(state.conversationId);
 
   const prompt = `You are CortexAI, an Intelligent AI assistant
   Rules:
@@ -36,9 +36,6 @@ export const chatAgent = async (state) => {
       messages.push(new AIMessage(msg.content));
     }
   });
-
-  messages.push(new HumanMessage(state.prompt));
-  console.log(messages);
 
   const response = await llm.invoke(messages);
 

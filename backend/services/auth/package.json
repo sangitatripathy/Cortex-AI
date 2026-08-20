@@ -16,6 +16,7 @@
     "express": "^5.2.1",
     "firebase-admin": "^14.2.0",
     "mongoose": "^9.9.1",
+    "morgan": "^1.11.0",
     "nodemon": "^3.1.14"
   }
 }
