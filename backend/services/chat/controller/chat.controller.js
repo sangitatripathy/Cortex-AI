@@ -47,10 +47,14 @@ export const getConversations = async (req, res) => {
 
 export const updateConversations = async (req, res) => {
   try {
-    const {id,title} = req.body;
-    const conversations = await Conversation.findByIdAndUpdate(id,{
-      title
-    })
+    const { id, title } = req.body;
+    const conversations = await Conversation.findByIdAndUpdate(
+      id,
+      {
+        title,
+      },
+      { new: true },
+    );
 
     return res.status(200).json(conversations);
   } catch (error) {
@@ -62,7 +66,7 @@ export const updateConversations = async (req, res) => {
 
 export const saveMessage = async (req, res) => {
   try {
-    const { conversationId, role, content } = req.body;
+    const { conversationId, role, content, images } = req.body;
 
     if (!conversationId || !role || !content) {
       return res.status(400).json({
@@ -74,6 +78,7 @@ export const saveMessage = async (req, res) => {
       conversationId,
       role,
       content,
+      images
     });
 
     return res.status(201).json(message);
