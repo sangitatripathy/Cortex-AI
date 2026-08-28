@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import sendMessage from "../api/sendMessage";
 import { useSelector, useDispatch } from "react-redux";
-import { setMessages, addMessage } from "../redux/messageslice.js";
+import { setMessages, addMessage, setArtifacts } from "../redux/messageslice.js";
 import { createConversation } from "../api/createConversation.js";
 import {
   addConversation,
@@ -71,6 +71,8 @@ const ChatInput = () => {
 
     const data = await sendMessage(payload);
 
+    dispatch(setArtifacts(data.artifacts || []))
+
     const newResponse = {
       role: "assistant",
       content: data.answer,
@@ -127,6 +129,7 @@ const ChatInput = () => {
             const Icon = agent.icon;
             return (
               <div
+                key={agent.id}
                 onClick={() => setSelectedAgent(agent.id)}
                 className={`flex-shrink-0 cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border transition-all ${
                   isActive ?

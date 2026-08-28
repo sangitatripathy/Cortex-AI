@@ -2,7 +2,7 @@ import { Check, Copy, ExternalLink, X } from "lucide-react";
 import React, { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import {Prism as SyntaxHighlighter} from "react-syntax-highlighter";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 const MessageBubble = ({ role, content, images }) => {
@@ -93,7 +93,10 @@ const MessageBubble = ({ role, content, images }) => {
               </a>
             ),
             code: ({ className, children }) => {
-              const value = String(children).replace(/^\s*```[^\n]*\n/,"").replace(/\n```\s*$/,"").trim();
+              const value = String(children)
+                .replace(/^\s*```[^\n]*\n/, "")
+                .replace(/\n```\s*$/, "")
+                .trim();
 
               if (!className) {
                 return (

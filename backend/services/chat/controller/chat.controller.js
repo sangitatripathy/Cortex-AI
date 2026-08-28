@@ -66,7 +66,7 @@ export const updateConversations = async (req, res) => {
 
 export const saveMessage = async (req, res) => {
   try {
-    const { conversationId, role, content, images } = req.body;
+    const { conversationId, role, content, images,artifacts } = req.body;
 
     if (!conversationId || !role || !content) {
       return res.status(400).json({
@@ -78,7 +78,8 @@ export const saveMessage = async (req, res) => {
       conversationId,
       role,
       content,
-      images
+      images,
+      artifacts
     });
 
     return res.status(201).json(message);

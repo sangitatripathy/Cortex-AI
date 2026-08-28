@@ -27,12 +27,14 @@ export const agent = async (req, res) => {
       conversationId,
       role: "assistant",
       content: aiMessage,
-      images: result.images
+      images: result?.images,
+      artifacts: result?.artifacts
     });
     
     return res.status(200).json({
       answer:aiMessage,
-      images:result.images
+      images:result.images,
+      artifacts: result.artifacts
     });
   } catch (error) {
     console.error("Agent error:", error);
