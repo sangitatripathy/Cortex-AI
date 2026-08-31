@@ -15,10 +15,13 @@ const ChatArea = () => {
       if (selectedConversation) {
         if (selectedConversation.title == "New Chat") return;
         const data = await getMessages(selectedConversation?._id);
-        console.log(data)
+        console.log(data);
         dispatch(setMessages(data));
-        const latestArtifactMessage = [...data].reverse().find(msg =>msg.artifacts && msg.artifacts.length > 0)
-        dispatch(setArtifacts(latestArtifactMessage.artifacts || []))
+        const latestArtifactMessage = [...data]
+          .reverse()
+          .find((msg) => msg.artifacts && msg.artifacts.length > 0);
+
+        dispatch(setArtifacts(latestArtifactMessage?.artifacts || []));
       }
     };
     getMsg();

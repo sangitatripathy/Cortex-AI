@@ -6,34 +6,39 @@ import { getFroms3 } from "../utils/getFromS3.js";
 export const visionAgent = async (state) => {
   try {
     const llm = await getModel("image");
+
     const res = await llm.invoke(`
-    You are an elite AI image prompt engineer.
+      You are an elite AI image prompt engineer.
 
-    Convert the user request into a highly detailed image generation prompt.
+      Convert the user request into a highly detailed image generation prompt.
 
-    Requirements:
+      Requirements:
+      - Cinematic lighting
+      - Professional composition
+      - Ultra realistic
+      - High detail
+      - Beautiful color palette
+      - Sharp focus
+      - 8k quality
+      - Photorealistic
+      - Depth of field
+      - Professional photography
+      - Stunning visuals
 
-    - Cinematic lighting
-    - Professional composition
-    - Ultra realistic
-    - High detail
-    - Beautiful color palette
-    - Sharp focus
-    - 8k quality
-    - Photorealistic
-    - Depth of field
-    - Professional photography
-    - Stunning visuals
+      Return only the image prompt.
 
-    Return only the image prompt.
-
-    User Request:
+      User Request:
       ${state.prompt}
-  `);
+    `);
 
     const prompt = res.content.trim();
 
-    const imageUrl = `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}`;
+    console.log("IMAGE PROMPT:", prompt);
+
+    const imageUrl =
+      `https://gen.pollinations.ai/image/${encodeURIComponent(prompt)}`;
+
+    console.log("Generating image...");
 
     const imageRes = await axios.get(imageUrl, {
       responseType: "arraybuffer",
@@ -42,29 +47,51 @@ export const visionAgent = async (state) => {
       },
     });
 
+    console.log("Pollinations status:", imageRes.status);
+
     const buffer = Buffer.from(imageRes.data);
-    const filename = `image-${(Date, now())}.png`;
 
-    await uploadToS3(filename, buffer, "image/png");
+    console.log("Image size:", buffer.length);
 
-    const downloadUrl = await getFromS3(filename, 24 * 60 * 60);
+    const filename = `image-${Date.now()}.png`;
+
+    await uploadToS3(
+      filename,
+      buffer,
+      "image/png"
+    );
+
+    console.log("Uploaded to S3:", filename);
+
+    const downloadUrl = await getFroms3(
+      filename,
+      10 * 60
+    );
+
+    console.log("Signed URL generated");
 
     return {
       ...state,
-      aiResponse: `
-    # 🖼️ Image Generated Successfully
 
-    ![Generated Image](${downloadUrl})
+      aiResponse: `# 🖼️ Image Generated Successfully`,
 
-    📥 [Download Image](${downloadUrl})
+      images: [downloadUrl],
 
-    ⏳ Link expires in 10 minutes
-    `,
+      artifacts: [],
     };
+
   } catch (error) {
+
+    console.error("VISION ERROR");
+    console.error("Message:", error.message);
+    console.error("Status:", error.response?.status);
+    console.error("Response:", error.response?.data);
+
     return {
       ...state,
       aiResponse: "❌ Failed to generate image",
+      images: [],
+      artifacts: [],
     };
   }
 };

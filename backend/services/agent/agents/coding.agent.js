@@ -5,21 +5,21 @@ export const codingAgent = async (state) => {
   const llm = getModel("coding");
 
   const intentRes = await intentLlm.invoke(`
-You are an intent classifier.
+    You are an intent classifier.
 
-Return ONLY one of these values:
+    Return ONLY one of these values:
 
-CODE_GENERATION
-CODE_REVIEW
-CODE_EXPLANATION
-DEBUGGING
-OPTIMIZATION
-CONVERSION
-DOCUMENTATION
+    CODE_GENERATION
+    CODE_REVIEW
+    CODE_EXPLANATION
+    DEBUGGING
+    OPTIMIZATION
+    CONVERSION
+    DOCUMENTATION
 
-User Request:
-${state.prompt}
-`);
+    User Request:
+    ${state.prompt}
+  `);
 
   const intent = intentRes.content.trim().replace(/^["']|["']$/g, "");
 
@@ -94,12 +94,8 @@ ${state.prompt}
 
     const res = await llm.invoke(prompt);
 
-    console.log("RAW CODING RESPONSE:");
-    console.log(res.content);
-
     let content = res.content.trim();
 
-    // Remove markdown fences if model ignores instructions
     content = content
       .replace(/^```json\s*/i, "")
       .replace(/^```\s*/i, "")
@@ -138,35 +134,32 @@ ${state.prompt}
     };
   }
 
-  // -------------------------
-  // 3. Other Coding Tasks
-  // -------------------------
 
   const res = await llm.invoke(`
-You are CortexAI Coding Agent.
+    You are CortexAI Coding Agent.
 
-Detected Intent:
-${intent}
+    Detected Intent:
+    ${intent}
 
-Return Markdown only.
+    Return Markdown only.
 
-Use headings like:
+    Use headings like:
 
-# Overview
+    # Overview
 
-## Explanation
+    ## Explanation
 
-## Problems
+    ## Problems
 
-## Improvements
+    ## Improvements
 
-## Best Practices
+    ## Best Practices
 
-## Optimized Code
+    ## Optimized Code
 
-User Request:
-${state.prompt}
-`);
+    User Request:
+    ${state.prompt}
+    `);
 
   return {
     ...state,

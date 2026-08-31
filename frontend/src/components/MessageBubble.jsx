@@ -5,30 +5,41 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-const MessageBubble = ({ role, content, images }) => {
+const MessageBubble = ({ role, content, images = [] }) => {
   const isUser = role === "user";
+
   const [lightBox, setLightBox] = useState(null);
   const [copiedCode, setCopiedCode] = useState("");
 
-  const copyCode = () => {
+  const copyCode = (code) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
+
     setTimeout(() => {
       setCopiedCode("");
     }, 2000);
   };
 
+  const cleanMarkdown = (content = "") => {
+    return content
+      .replace(/^```(?:markdown|md)?\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+  };
+  console.log(content)
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div
-        className={`w-fit max-w-[92vw] md:max-w-[72%] px-4 py-2.5 rounded-2xl break-words overflow-hidden leading-relaxed
+        className={`w-fit max-w-[92vw] md:max-w-[72%] px-4 py-2.5 rounded-2xl
+        break-words overflow-hidden leading-relaxed
         ${
           isUser ?
-            "bg-linear-to-br from-indigo-500 to-violet-700 text-white round-tr-sm"
-          : " text-slate-200 rounded-tl-sm"
+            "bg-linear-to-br from-indigo-500 to-violet-700 text-white rounded-tr-sm"
+          : "text-slate-200 rounded-tl-sm"
         }`}
       >
-        {images.length > 0 && (
+        {/* Images */}
+        {images?.length > 0 && (
           <div className="flex flex-wrap gap-3 mt-4">
             {images.map((img, i) => (
               <img
@@ -37,7 +48,9 @@ const MessageBubble = ({ role, content, images }) => {
                 onClick={() => setLightBox(img)}
                 loading="lazy"
                 onError={(e) => e.currentTarget.remove()}
-                className="w-40 h-28 rounded-xl object-cover border border-white/10 cursor-zoom-in hover:opacity-90 transition"
+                className="w-40 h-28 rounded-xl object-cover
+                border border-white/10 cursor-zoom-in
+                hover:opacity-90 transition"
               />
             ))}
           </div>
@@ -47,57 +60,85 @@ const MessageBubble = ({ role, content, images }) => {
           remarkPlugins={[remarkGfm]}
           components={{
             h1: ({ children }) => (
-              <h1 className="text-2xl font-bold mt-5 mb-3">{children}</h1>
+              <h1 className="text-xl font-semibold text-slate-100 mt-2 mb-3">
+                {children}
+              </h1>
             ),
+
             h2: ({ children }) => (
-              <h2 className="text-xl font-bold mt-4 mb-2">{children}</h2>
+              <h2 className="text-lg font-semibold text-slate-200 mt-4 mb-2">
+                {children}
+              </h2>
             ),
+
             h3: ({ children }) => (
               <h3 className="text-lg font-bold mt-3 mb-2">{children}</h3>
             ),
+
             p: ({ children }) => (
-              <p className="mb-3 whitespace-pre-wrap break-words">{children}</p>
+              <p className="text-sm text-slate-400 leading-6 mb-3">
+                {children}
+              </p>
             ),
+
             ul: ({ children }) => (
               <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>
             ),
+
             ol: ({ children }) => (
               <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>
             ),
-            table: ({ children }) => (
-              <div className="overflow-x-auto my-4">
-                <table className="min-w-full border border-white/10">
-                  {children}
-                </table>
-              </div>
-            ),
-            th: ({ children }) => (
-              <th className="border border-white/10 bg-white/5 px-3 py-2 text-left">
+
+            strong: ({ children }) => (
+              <strong className="font-semibold text-slate-200">
                 {children}
-              </th>
+              </strong>
             ),
-            td: ({ children }) => (
-              <td className="border border-white/10 bg-white/5 px-3 py-2">
-                {children}
-              </td>
-            ),
+
+            /* =========================
+               PDF / NORMAL LINKS
+               ========================= */
+
             a: ({ href, children }) => (
               <a
                 href={href}
                 target="_blank"
-                rel="noreferrer"
-                className="text-indigo-400 underline inline-flex items-center gap-1"
+                rel="noopener noreferrer"
+                className="
+                  my-3
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-lg
+                  bg-indigo-500
+                  px-4
+                  py-2
+                  text-sm
+                  font-medium
+                  text-white
+                  no-underline
+                  transition-all
+                  hover:bg-indigo-600
+                  hover:shadow-lg
+                  hover:shadow-indigo-500/20
+                "
               >
-                {children}
-                <ExternalLink size={14} />
+                <ExternalLink size={15} />
+                <span>{children}</span>
               </a>
             ),
+
+            /* =========================
+               INLINE / CODE BLOCK
+               ========================= */
+
             code: ({ className, children }) => {
               const value = String(children)
                 .replace(/^\s*```[^\n]*\n/, "")
                 .replace(/\n```\s*$/, "")
                 .trim();
 
+              // Inline code
               if (!className) {
                 return (
                   <code className="px-1.5 py-0.5 rounded bg-white/20 text-indigo-300">
@@ -106,7 +147,7 @@ const MessageBubble = ({ role, content, images }) => {
                 );
               }
 
-              const language = className?.replace("language-", "");
+              const language = className.replace("language-", "");
 
               return (
                 <div className="py-4 overflow-hidden rounded-xl border border-white/10 bg-[#111318]">
@@ -114,11 +155,12 @@ const MessageBubble = ({ role, content, images }) => {
                     <span className="uppercase text-xs text-slate-400">
                       {language}
                     </span>
+
                     <button
                       className="flex items-center gap-1 text-xs"
                       onClick={() => copyCode(value)}
                     >
-                      {copiedCode == value ?
+                      {copiedCode === value ?
                         <>
                           <Check size={14} />
                           Copied
@@ -130,6 +172,7 @@ const MessageBubble = ({ role, content, images }) => {
                       }
                     </button>
                   </div>
+
                   <SyntaxHighlighter
                     language={language}
                     style={oneDark}
@@ -147,11 +190,66 @@ const MessageBubble = ({ role, content, images }) => {
                 </div>
               );
             },
+
+            /* =========================
+               MARKDOWN IMAGES
+               ========================= */
+
+            img: ({ src, alt }) => {
+              if (!src) return null;
+
+              return (
+                <img
+                  src={src}
+                  alt={alt || "Generated image"}
+                  onClick={() => setLightBox(src)}
+                  loading="lazy"
+                  onError={(e) => e.currentTarget.remove()}
+                  className="
+                    w-40
+                    h-28
+                    rounded-xl
+                    object-cover
+                    border
+                    border-white/10
+                    cursor-zoom-in
+                    hover:opacity-90
+                    transition
+                  "
+                />
+              );
+            },
+
+            /* =========================
+               TABLE
+               ========================= */
+
+            table: ({ children }) => (
+              <div className="overflow-x-auto my-4">
+                <table className="min-w-full border border-white/10">
+                  {children}
+                </table>
+              </div>
+            ),
+
+            th: ({ children }) => (
+              <th className="border border-white/10 bg-white/5 px-3 py-2 text-left">
+                {children}
+              </th>
+            ),
+
+            td: ({ children }) => (
+              <td className="border border-white/10 bg-white/5 px-3 py-2">
+                {children}
+              </td>
+            ),
           }}
         >
-          {content}
+          {cleanMarkdown(content)}
         </Markdown>
       </div>
+
+      {/* Lightbox */}
       {lightBox && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-6">
           <button
@@ -160,6 +258,7 @@ const MessageBubble = ({ role, content, images }) => {
           >
             <X />
           </button>
+
           <img
             src={lightBox}
             className="max-w-[90vw] max-h-[85vh] rounded-2xl border border-white/10 shadow-2xl object-contain"
