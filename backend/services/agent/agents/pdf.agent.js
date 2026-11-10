@@ -48,17 +48,7 @@ export const pdfAgent = async (state) => {
     return {
       ...state,
 
-      aiResponse: `# PDF Generated
-
-      Your document has been created successfully.
-
-      **${data.title}**
-
-      📄 Your PDF is ready to download.
-
-      [Download PDF](${downloadUrl})
-
-      *This download link expires in 10 minutes.*`,
+      aiResponse: `### PDF Generated\n\n**${data.title}**\n\n🗂️ [Download PDF](${downloadUrl})\n\n*Link expires in 10 minutes.*`,
     };
   } catch (error) {
     console.log("PDF ERROR:", error);
