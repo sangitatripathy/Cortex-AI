@@ -6,6 +6,9 @@ import redis from "../../../shared/redis/redis.js";
 export const agent = async (req, res) => {
   try {
     const { prompt, conversationId,agent } = req.body;
+    const file = req.file;
+    const userId = req.headers["x-user-id"]
+    const sessionId = req.headers["x-session-id"]
 
     await axios.post(`${process.env.CHAT_SERVICE}/save-message`, {
       conversationId,
@@ -16,7 +19,10 @@ export const agent = async (req, res) => {
     const result = await graph.invoke({
       prompt,
       conversationId,
-      agent
+      agent,
+      userId,
+      sessionId,
+      file
     });
 
     const aiMessage = result.aiResponse;

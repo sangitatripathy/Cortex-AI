@@ -2,6 +2,7 @@ import { getModel } from "../config/llmModel.js";
 import { generatePPT } from "../utils/generatePPT.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getFroms3 } from "../utils/getFromS3.js";
+import { deductCredits } from "../utils/deductCredits.js"
 
 export const pptAgent = async (state) => {
   try {
@@ -39,6 +40,7 @@ export const pptAgent = async (state) => {
 
     const res = await llm.invoke(prompt);
     const data = JSON.parse(res.content);
+    await deductCredits(state.userId,"ppt",state.sessionId)
     const ppt = await generatePPT(data);
     const buffer = await ppt.write({
       outputType: "nodebuffer",

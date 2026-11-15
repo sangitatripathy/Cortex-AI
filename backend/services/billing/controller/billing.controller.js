@@ -14,6 +14,10 @@ export const createOrder = async (req, res) => {
       return res.status(404).json({ message: "plan not found" });
     }
 
+    if (selectedPlan.amount <= 0) {
+      return res.status(400).json({ message: "Free plan does not require payment" });
+    }
+
     const order = await razorpay.orders.create({
       amount: selectedPlan.amount * 100,
       currency: "INR",
@@ -35,8 +39,17 @@ export const createOrder = async (req, res) => {
       plan: selectedPlan,
     });
   } catch (error) {
-    return res.status(500).json({
-      message: `Error occurred while placing order ${error}`,
+    console.error("createOrder error:", error);
+    if (error?.statusCode) {
+      return res.status(error.statusCode).json({
+        message: error.error?.description || "Razorpay order creation failed",
+      });
+    }
+    const unreachable = error instanceof TypeError && /reading 'status'/.test(error.message);
+    return res.status(unreachable ? 502 : 500).json({
+      message: unreachable
+        ? "Could not reach Razorpay (network error). Please try again."
+        : `Error occurred while placing order: ${error?.message || error}`,
     });
   }
 };
@@ -76,10 +89,11 @@ export const verifyPayment = async (req, res) => {
       userId: payment.userId,
       plan: payment.plan,
       credits: payment.credits,
+      sessionId: req.headers["x-session-id"],
     });
     return res.status(200).json({message:"Payment verified"});
   } catch (error) {
-    return res.status(200).json({message:`Verify payment error ${error}`});
+    return res.status(500).json({message:`Verify payment error ${error}`});
   }
 };
                                                                                                                                                   

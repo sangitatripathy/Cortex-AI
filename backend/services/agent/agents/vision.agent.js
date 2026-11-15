@@ -2,6 +2,7 @@ import { getModel } from "../config/llmModel.js";
 import axios from "axios";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getFroms3 } from "../utils/getFromS3.js";
+import { deductCredits } from "../utils/deductCredits.js"
 
 export const visionAgent = async (state) => {
   try {
@@ -46,7 +47,7 @@ export const visionAgent = async (state) => {
         Authorization: `Bearer ${process.env.POLLINATIONS_API_KEY}`,
       },
     });
-
+    await deductCredits(state.userId,"vision",state.sessionId)
     console.log("Pollinations status:", imageRes.status);
 
     const buffer = Buffer.from(imageRes.data);

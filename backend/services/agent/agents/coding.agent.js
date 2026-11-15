@@ -1,4 +1,5 @@
 import { getModel } from "../config/llmModel.js";
+import { deductCredits } from "../utils/deductCredits.js";
 
 export const codingAgent = async (state) => {
   const intentLlm = getModel("intent");
@@ -106,6 +107,7 @@ export const codingAgent = async (state) => {
 
     try {
       data = JSON.parse(content);
+      await deductCredits(state.userId,"coding",state.sessionId)
     } catch (error) {
       console.error("JSON PARSE ERROR:", error);
       console.error("MODEL OUTPUT:", content);
