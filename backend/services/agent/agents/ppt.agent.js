@@ -2,10 +2,12 @@ import { getModel } from "../config/llmModel.js";
 import { generatePPT } from "../utils/generatePPT.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getFroms3 } from "../utils/getFromS3.js";
-import { deductCredits } from "../utils/deductCredits.js"
+import { deductCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js";
 
 export const pptAgent = async (state) => {
   try {
+    await checkAgentLimit(state.userId,"ppt")
     const llm = await getModel("ppt");
     const prompt = `You are a professional presentation designer.
     Return only valid JSON.
@@ -72,7 +74,7 @@ export const pptAgent = async (state) => {
     console.log(error);
     return {
       ...state,
-      aiResponse:"Failed to generate PPT"
+      aiResponse: error?.data?.message ||"Failed to generate PPT"
     }
   }
 };

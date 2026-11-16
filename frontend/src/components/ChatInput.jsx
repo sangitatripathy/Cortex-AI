@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Paperclip,
   Mic,
@@ -10,10 +10,16 @@ import {
   Presentation,
   ImageIcon,
   Globe,
+  X,
 } from "lucide-react";
 import sendMessage from "../api/sendMessage";
 import { useSelector, useDispatch } from "react-redux";
-import { setMessages, addMessage, setArtifacts } from "../redux/messageslice.js";
+import {
+  setMessages,
+  addMessage,
+  setArtifacts,
+  setIsLoading
+} from "../redux/messageslice.js";
 import { createConversation } from "../api/createConversation.js";
 import {
   addConversation,
@@ -27,9 +33,12 @@ const ChatInput = () => {
   const [selectedAgent, setSelectedAgent] = useState("Auto");
   const { selectedConversation } = useSelector((state) => state.conversation);
   const { messages } = useSelector((state) => state.message);
+  const [selectedFile, setSelectedFile] = useState(null);
   const dispatch = useDispatch();
+  const fileRef = useRef(null);
 
   const handleSendMessage = async () => {
+    dispatch(setIsLoading(true));
     let conversation = selectedConversation;
 
     if (!conversation) {
@@ -44,8 +53,7 @@ const ChatInput = () => {
         id: conversation._id,
         title: value.trim(),
       });
-      console.log(x);
-      console.log(conversation);
+
       dispatch(
         setConversationTitle({
           conversationId: conversation._id,
@@ -61,22 +69,26 @@ const ChatInput = () => {
 
     dispatch(addMessage(newMessage));
 
-    const payload = {
-      prompt: value.trim(),
-      conversationId: conversation._id,
-      agent:selectedAgent.toLowerCase()
-    };
+    const formData = new FormData();
+    formData.append("prompt", value.trim());
+    formData.append("conversationId", conversation?._id);
+    formData.append("agent", selectedAgent.toLowerCase());
+    if(selectedFile){
+      formData.append("file", selectedFile);
+    }
+    
 
     setValue("");
 
-    const data = await sendMessage(payload);
+    const data = await sendMessage(formData);
+    dispatch(setIsLoading(false));
 
-    dispatch(setArtifacts(data.artifacts || []))
+    dispatch(setArtifacts(data?.artifacts || []));
 
     const newResponse = {
       role: "assistant",
-      content: data.answer,
-      images:data.images
+      content: data?.answer || "Sorry, something went wrong. Please try again.",
+      images: data?.images,
     };
 
     dispatch(addMessage(newResponse));
@@ -147,6 +159,37 @@ const ChatInput = () => {
           })}
         </div>
 
+        {selectedFile && (
+          <div className="my-3">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
+              {selectedFile?.type === "application/pdf" ?
+                <FileText size={16} />
+              : selectedFile?.type.startsWith("image/") && (
+                  <img
+                    src={URL.createObjectURL(selectedFile)}
+                    className="h-10 w-10 rounded-xl object-cover mt-3"
+                  />
+                )
+              }
+              <div>
+                <p className="text-xs text-white">{selectedFile?.name}</p>
+                <p className="text-[10px] text-slate-500">
+                  {Math.ceil(selectedFile?.size / 1024)} KB
+                </p>
+              </div>
+              <button
+                className="ml-2"
+                onClick={() => {
+                  setSelectedFile(null);
+                  fileRef.current.value = "";
+                }}
+              >
+                <X size={14} className="text-slate-500 hover:text-white" />
+              </button>
+            </div>
+          </div>
+        )}
+
         <textarea
           placeholder="Ask anything"
           className="w-full bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-600 leading-relaxed scrollbar-none [&::-webkit-scrollbar]:hidden disabled:opacity-50"
@@ -157,7 +200,22 @@ const ChatInput = () => {
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
-            <button className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent cursor-pointer">
+            <input
+              type="file"
+              accept=".pdf,image/*"
+              hidden
+              ref={fileRef}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setSelectedFile(file);
+                }
+              }}
+            />
+            <button
+              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent cursor-pointer"
+              onClick={() => fileRef.current.click()}
+            >
               <Paperclip size={16} />
             </button>
             <button className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent cursor-pointer">

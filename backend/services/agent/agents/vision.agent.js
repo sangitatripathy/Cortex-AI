@@ -2,10 +2,12 @@ import { getModel } from "../config/llmModel.js";
 import axios from "axios";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getFroms3 } from "../utils/getFromS3.js";
-import { deductCredits } from "../utils/deductCredits.js"
+import { deductCredits } from "../utils/deductCredits.js";
+import { checkAgentLimit } from "../config/agentLimit.js";
 
 export const visionAgent = async (state) => {
   try {
+    await checkAgentLimit(state.userId,"image")
     const llm = await getModel("image");
 
     const res = await llm.invoke(`
@@ -82,15 +84,10 @@ export const visionAgent = async (state) => {
     };
 
   } catch (error) {
-
-    console.error("VISION ERROR");
-    console.error("Message:", error.message);
-    console.error("Status:", error.response?.status);
-    console.error("Response:", error.response?.data);
-
+    console.log(error)
     return {
       ...state,
-      aiResponse: "❌ Failed to generate image",
+      aiResponse: error?.data?.message || "❌ Failed to generate image",
       images: [],
       artifacts: [],
     };
